@@ -44,7 +44,7 @@ class Handler(BaseHTTPRequestHandler):
             files = sorted(VIDEO_ROOT.glob("*.mp4")) if VIDEO_ROOT.exists() else []
             items = [{"id": f.stem, "score": score(f.stem)} for f in files]
             items.sort(key=lambda x: (-x["score"], x["id"]))
-            self.json({"interval_minutes": current["interval_minutes"], "posted": current["posted"], "items": items, "minimum_score": 4})
+            self.json({"interval_minutes": current["interval_minutes"], "posted": current["posted"], "items": [x["id"] for x in items], "scores": {x["id"]: x["score"] for x in items}, "minimum_score": 4})
             return
         if self.path == "/api/next":
             current = state()
