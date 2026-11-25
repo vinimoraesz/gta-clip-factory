@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import json
+import re
 
 ROOT = Path(__file__).parent
 VIDEO_ROOT = Path(r"C:\Users\DESKTOP\Documents\Codex\2026-11-19\vc\outputs\GTA-VI-23-11\envio")
@@ -13,6 +14,20 @@ def state():
 
 def save(data):
     STATE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+KEYWORDS = {
+    "susto": 5, "assust": 5, "risada": 5, "rindo": 4, "kkkk": 4,
+    "descob": 4, "curios": 3, "reacao": 3, "reação": 3, "inedit": 3,
+    "segredo": 4, "bug": 2, "npc": 2, "louco": 2, "plot": 2,
+}
+
+def score(name):
+    text = name.lower()
+    points = sum(v for k, v in KEYWORDS.items() if k in text)
+    # Penaliza arquivos genéricos, que normalmente não têm contexto suficiente.
+    if re.search(r"(teste|test|sem[-_ ]?titulo|clip[-_ ]?\d+$)", text):
+        points -= 4
+    return max(0, points)
 
 class Handler(BaseHTTPRequestHandler):
     def json(self, data):
@@ -27,7 +42,16 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/api/queue":
             current = state()
             files = sorted(VIDEO_ROOT.glob("*.mp4")) if VIDEO_ROOT.exists() else []
-            self.json({"interval_minutes": current["interval_minutes"], "posted": current["posted"], "items": [f.stem for f in files]})
+            items = [{"id": f.stem, "score": score(f.stem)} for f in files]
+            items.sort(key=lambda x: (-x["score"], x["id"]))
+            self.json({"interval_minutes": current["interval_minutes"], "posted": current["posted"], "items": items, "minimum_score": 4})
+            return
+        if self.path == "/api/next":
+            current = state()
+            files = [f for f in VIDEO_ROOT.glob("*.mp4") if f.stem not in current["posted"]]
+            ranked = sorted(((score(f.stem), f.stem) for f in files), reverse=True)
+            self.json({"item": ranked[0][1] if ranked and ranked[0][0] >= 4 else None,
+                       "score": ranked[0][0] if ranked else 0, "minimum_score": 4})
             return
         if self.path == "/":
             body = (ROOT / "index.html").read_bytes()
