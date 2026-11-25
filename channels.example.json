@@ -1,0 +1,14 @@
+{
+  "channels": [
+    {"name": "kosky", "platform": "twitch", "url": "COLE_A_URL_OFICIAL_AQUI"},
+    {"name": "alanzoka", "platform": "twitch", "url": "COLE_A_URL_OFICIAL_AQUI"},
+    {"name": "yuri22", "platform": "twitch", "url": "COLE_A_URL_OFICIAL_AQUI"},
+    {"name": "jonvlogs", "platform": "kick", "url": "COLE_A_URL_OFICIAL_AQUI"},
+    {"name": "allanstag", "platform": "kick", "url": "COLE_A_URL_OFICIAL_AQUI"}
+  ],
+  "output_dir": "outputs",
+  "min_clip_seconds": 15,
+  "max_clip_seconds": 40,
+  "min_score": 4
+}
+
